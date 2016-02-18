@@ -1,0 +1,56 @@
+@import	 "bootstrap";
+.map-container {
+    margin: 20px;
+    box-sizing: border-box;
+}
+
+.container-fixed{
+    width: 480px;
+    height: 480px;
+}
+
+.map-fixed{
+    width: 480px;
+    height: 480px;
+}
+
+.map-full-width{
+    width: 100%;
+    min-height: 800px;
+}
+
+.map-container {
+    position: relative;
+    overflow: hidden;
+}
+.map-container:before, .map-container:after, .map:before, .map:after {
+    position: absolute;
+    display: block;
+    box-shadow: 0 0 20px 1px rgba(69, 69, 69, 0.9);
+    content: '';
+    z-index: 5;
+}
+.map-container:before {
+    top: -5px;
+    left: 0;
+    right: 0;
+    height: 5px;
+}
+.map-container:after {
+    right: -5px;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+.map:before{
+    bottom: -5px;
+    left: 0;
+    right: 0;
+    height: 5px;
+}
+.map:after{
+    left: -5px;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+	<head>
+            <meta charset="UTF-8"/>
+            <link href="stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
+            <link href="stylesheets/print.css" media="print" rel="stylesheet" type="text/css" />
+            <link href="stylesheets/styles.css" rel="stylesheet" type="text/css">
+            <!--[if IE]>
+            <link href="/stylesheets/ie.css" media="screen, projection" rel="stylesheet" type="text/css" />
+            <![endif]-->
+            <script type="text/javascript" src="javascripts/jquery-2.1.4.min.js"></script>
+            <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=false"></script>
+            <script type="text/javascript" src="javascripts/bootstrap.min.js"></script>
+            <script type="text/javascript" src="javascripts/korbanek-map.js" charset="UTF-8"></script>
+            <script type="text/javascript" src="javascripts/modernizr-custom.js"></script>
+	</head>
+	<body>
+	<h2> Korbanek Map</h2>
+	<div class="map-container">
+            <div class="map map-full-width" id="map" data-map-config='{"searchFeature":true, "showAll":false, "detectUserPosition":false, "mapOptions": {"disableDefaultUI": true}}'></div>
+	</div>
+        <div class="map-container container-fixed">
+            <div class="map map-fixed" id="map-dealer-region" data-map-config='{"activeInfoWindows":false, "mapZoom":5, "markersSourceClass":".point", "showAll":true, "detectUserPosition":false, "mapOptions": {"disableDefaultUI": true}}'></div>
+	</div>
+        <div id="dealers-detail">            
+            <div class="central dealer point" data-lat="52.458764" data-lng="16.646641000000045">
+                <h2>KORBANEK Sp. z o.o.</h2>
+                <p> 
+                    <span class="address">ul. Poznańska 159, 62-080 Tarnowo Podgórne</span>
+                    www.korbanek.pl, info@korbanek.pl
+                    tel. 61 8950 300 centrala
+                    tel. 61 8950 301 maszyny    
+                    tel. 61 8950 302 serwis
+                    tel. 61 8950 303 części zamienne
+                    fax 61 8950 309
+                </p>
+            </div>
+           <div class="dealer point" data-lat="53.474056" data-lng="16.879423999999972">
+                <h2>MASZYNY ROLNICZE Nel Wójcik</h2>
+                <p>
+                    <span class="address">Podgaje, ul. Pamięci Narodowej 2, 64-965 Okonek</span>
+                    tel. 67 26 69 572 centrala
+                    tel. 67 26 60 142 maszyny, części zam. i serwis
+                </p>
+            </div>
+           <div class="dealer point" data-lat="51.22406100000001" data-lng="17.969814000000042">
+                <h2>Agropol Marek i Dariusz Jarych Spółka Jawna</h2>
+                <p>
+                    <span  class="address">Mroczeń 1, 63-611 Mroczeń</span>
+                    tel. 62 78 19 331 centrala
+                    fax 62 78 27 713
+                </p>
+            </div>
+           <div class="dealer point" data-lat="51.177192" data-lng="22.739278000000013">
+                <h2>MASZYNY ROLNICZE Mariusz Zdunek</h2>
+                <p>
+                    <span  class="address">Wierzchowiska Drugie 81A, 21-050 Piaski</span>
+                    tel. 81 58 10 940 maszyny
+                    tel. 81 58 10 941 serwis
+                    fax 81 58 10 222 części zamienne
+                </p>
+            </div>
+           <div class="dealer point" data-lat="53.3462354" data-lng="15.058239299999968">
+                <h2>Misztela Robert</h2>
+                <p>
+                    <span  class="address">Święte 22A, 73-110 Stargard Szczeciński</span>
+                    tel. 91 391 00 60 centrala, serwis
+                    tel. 91 391 09 78 maszyny
+                    tel. 91 391 10 90 części zamienne 
+                </p>
+            </div>
+           <div class="dealer" data-lat="50.785134" data-lng="21.418896399999994">
+                <h2>Firma Handl.-Usł. „Agro-Serwis” Mariusz Nowakowski</h2>
+                <p>
+                    <span class="address">Gojców 26, 27-500 Opatów</span>
+                    tel. 15 86 91 105 centrala
+                    tel. 603 953 499 maszyny
+                    tel. 669 122 122 części zamienne
+                </p>
+            </div>
+           <div class="dealer" data-lat="52.748326" data-lng="22.846182">
+                <h2>„ROLMAX” Maksymiuk Wojciech</h2>
+                <p>
+                    <span class="address">ul. Armii Krajowej 4B, 17-120 Brańsk</span>
+                    tel. 85 73 76 270 centrala, części zam.
+                    tel. 512 537 555 maszyny
+                    tel. 602 313 788 serwis
+                </p>
+            </div>
+           <div class="dealer" data-lat="53.4883604" data-lng="22.74769630000003">
+                <h2>VOLTRANS Sp. Jawna Usługi Handl.-Transp. Uścinowicz Piotr, Horczak Adam</h2>
+                <p>
+                    <span class="address">ul. Wojska Polskiego 70, 19-110 Goniądz</span>
+                    tel. 85 73 80 474 centrala
+                    tel. 696 464 047 maszyny
+                    tel. 606 854 583 części zam. i serwis
+                </p>
+            </div>
+           <div class="dealer" data-lat="51.80643509999999" data-lng="19.658537199999955">
+                <h2>AGRO LIPINY Zdzisław Sołdon</h2>
+                <p>
+                    <span class="address">Lipiny 66, 92-701 Łódź</span>
+                    tel. 693 700 708, 695 641 406
+                    tel. 605 685 614, 603 836 785 maszyny
+                    tel. 42 205 02 43 części zam. i serwis
+                </p>
+            </div>
+           <div class="dealer" data-lat="54.043853" data-lng="19.66536300000007">
+                <h2>„KRUSZEWSKI” Kruszewski Roman</h2>
+                <p>
+                    <span class="address">ul. Westerplatte 58, 14-400 Pasłęk</span>
+                    tel. 55 23 71 246 centrala
+                    tel. 508 197 695 maszyny
+                </p>
+            </div>
+           <div class="dealer" data-lat="52.840281" data-lng="21.012471000000005">
+                <h2>Wójcik & Grabowski Sp. z o.o.</h2>
+                <p>
+                    <span class="address">ul. Makowska 48, 06-425 Karniewo</span>
+                    tel. 506 981 984 sprzedaż maszyn
+                    tel. 504 124 428 części zam. i serwis
+                </p>
+            </div>
+           <div class="dealer" data-lat="49.9929999" data-lng="21.067048">
+                <h2>Firma Usł.-Handl. „W. Marek” Wiesław Marek</h2>
+                <p>
+                    <span class="address">Skrzyszów 518, 33-156 Skrzyszów</span>
+                    tel. 607 556 055 maszyny
+                    tel. 14 67 45 407 części zam. i serwis
+                </p>
+            </div>
+           <div class="dealer" data-lat="53.34308499999999" data-lng="19.470794299999966">
+                <h2>„KRUSZEWSKI” Kruszewski Roman</h2>
+                <p>
+                    <span class="address">Pokrzydowo 184, 87-312 Pokrzydowo</span>
+                    tel. 56 49 12 600 centrala
+                    tel. 56 49 12 621 maszyny
+                    tel. 56 49 12 603 serwis
+                    tel. 56 49 12 611 (612) części zamienne 
+                </p>
+            </div>
+           <div class="dealer" data-lat="50.0903071" data-lng="22.87855079999997">
+                <h2>Firma Usł.-Handl. Drobny Sławomir</h2>
+                <p>
+                    <span class="address">Zapałów 170, 37-544 Zapałów</span>
+                    tel. 606 415 572 maszyny
+                    tel. 16 62 86 093 części zam. i serwis
+                </p>
+            </div>
+           <div class="dealer" data-lat="53.15727709999999" data-lng="22.033853499999964">
+                <h2>Rogowski Robert Maszyny Rolnicze</h2>
+                <p>
+                    tel. 501 288 261 maszyny
+                </p>
+                <h3>Biuro, Serwis, Części:</h3>
+                <p>
+                    <span class="address">ul. Magazynowa 7, 18-400 Łomża</span>
+                </p>
+                <h3>Sprzedaż maszyn, plac wystawowy:</h3>
+                <p>
+                    <span class="address">ul. Poznańska 121, 18-400 Łomża</span>
+                    tel. 668 012 111 części zam. i serwis
+                </p>                                     
+            </div>
+           <div class="dealer" data-lat="50.5146543" data-lng="18.54033789999994">
+                <h2>„ROL DAM-SERWIS” Damian Świeży</h2>
+                <p>
+                    <span class="address">Świbie, ul. Sportowa 35, 44-187 Wielowieś</span>
+                    tel. 507 051 066 maszyny
+                    tel. 32 23 01 281 części zam. i serwis
+                </p>
+            </div>
+           <div class="dealer" data-lat="52.75378" data-lng="18.11328000000003">
+                <h2>AGRO-CLASSIC Sławomir Giża Spółka Jawna</h2>
+                <p>
+                    <span class="address">ul. Wędkarska 2, 88-160 Janikowo</span>
+                    tel. 52 352 65 00 serwis
+                    tel. 605 900 027 maszyny
+                    tel. 52 352 65 01 części zamienne
+                </p>
+            </div>
+           <div class="dealer" data-lat="54.30281" data-lng="22.306195000000002">
+                <h2>ROL-MASZ Serwis Naprawa Grzegorz Brzozowski</h2>
+                <p>
+                    <span  class="address">ul. Warszawska 8a, 19-500 Gołdap</span>
+                    tel. 87 61 53 886 centrala
+                    tel. 601 231 976, 690 003 339 maszyny
+                    tel. 605 575 834 części zam. i serwis
+                </p>
+            </div>
+           <div class="dealer" data-lat="51.254405" data-lng="15.929446999999982">
+                <h2>KACHNIARZ Sp.j.</h2>
+                <p>
+                    <span  class="address">Gołaczów 37, 59-225 Chojnów</span>
+                    tel. 76 877 22 30
+                    fax. 76 854 86 81
+                    tel. 571 271 202 serwis
+                    tel. 605 363 074, 604 992 745 maszyny
+                    tel. 571 271 203, 571 271 204 części zam.
+                    tel. 571 271 205 części zamienne
+                </p>
+            </div>
+        </div>
+	</body>
+</html>
