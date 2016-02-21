@@ -21,6 +21,15 @@
         mapSettingsDataAttr:'map-config',
         bindSearchFeatureTo: 'submit',
 
+        //Form css Classes
+        searchFormClassSet: null,  // Css classes for <form>
+        formControlsCssSet: null,  // Css classes for inside <div>
+        labelCssSet: null, // Css classes for form label
+        inputCssSet: null, // Css classes for form input field
+        inputLabel: 'Address', // Input Label
+        inputText: 'text',  // Input Placeholder
+        searchButtonText: 'Search',  // Button Text
+
         //Map Default Settings
         detectUserPosition: true,
         showAll: false,
@@ -28,9 +37,6 @@
         searchFeature: false,
         activeInfoWindows: true,
         mapZoom: 7,        
-        inputLabel: 'Address', // Input Label
-        inputText: 'text',  // Input Placeholder
-        searchButtonText: 'Search',  // Button Text
         defaultMarkerSet: [],
         centralMarkerIcon: {
             url: 'images/marker-central.png', 
@@ -75,18 +81,18 @@
         //Detect User Position from Browser
         var mapOptions = $j.extend({}, defaults, options);
         var that = this;
-        $j(this).GoogleMapPlugin.searchFeatureUI(mapOptions, that)
+        $j(this).GoogleMapPlugin.searchFeatureUI(mapOptions, that);
     };
     
     //Insert Search Field
     $j.fn.GoogleMapPlugin.searchFeatureUI = function(mapOptions, element){
         if(mapOptions.searchFeature){
             $j(element).parent().before(
-                '<form role="form">\n\
-                    <div class="form-group">\n\
-                        <label for="' + mapOptions.bindSearchFeatureTo + '">' + mapOptions.inputLabel + '</label>\n\
-                        <input type="text" class="form-control" id="address" placeholder="' + mapOptions.inputText + '">\n\
-                        <button id="' + mapOptions.bindSearchFeatureTo + ' type="submit" class="btn btn-default">' + mapOptions.searchButtonText + '</button>\n\                        \n\
+                '<form class="' + mapOptions.searchFormClassSet + '" role="form">\n\
+                    <div class="form-group' + mapOptions.formControlsCssSet + '>\n\
+                        <label class="' + mapOptions.labelCssSet + '" for="' + mapOptions.bindSearchFeatureTo + '">' + mapOptions.inputLabel + '</label>\n\
+                        <input type="text" class="form-control ' + mapOptions.inputCssSet + '" id="address" placeholder="' + mapOptions.inputText + '">\n\
+                        <button id="' + mapOptions.bindSearchFeatureTo + ' type="submit" class="btn btn-default"><span>' + mapOptions.searchButtonText + '</span></button>\n\                        \n\
                     </div>\n\
                 </form>');
         }
