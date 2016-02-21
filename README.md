@@ -1,1 +1,1 @@
-# korbanek-map
+# google map jquery plugin
