@@ -104,8 +104,15 @@
     $j.fn.GoogleMapPlugin.initializeMap = function(config){ 
         this.googleMap = new GoogleMap(config);
         this.apiControler = new GoogleAPIControler();
+        var that = this;        
         if(config.detectUserPosition){
-            this.googleMap.retriveUserPosition(this.googleMap.config);
+            this.googleMap.detectUserPosition(this.googleMap.config, function(navigatorPosition){
+                that.googleMap.config['mapZoom'] = 9;
+                that.googleMap.config['mapPosition'] = navigatorPosition;
+                that.googleMap.embedMap();
+            });        
+        }
+        else{
             this.googleMap.embedMap();
         }
     };
@@ -115,7 +122,7 @@
         this.map;
     };
     
-    GoogleMap.prototype.embedMap = function(){    
+    GoogleMap.prototype.embedMap = function(){
         var mapCenter = new google.maps.LatLng(this.config.mapPosition);
         this.map = new google.maps.Map(document.getElementById(this.config.onContainer), this.config.mapOptions);            
         this.map.setCenter(mapCenter);
@@ -131,16 +138,7 @@
         }, function(err){
             console.warn('ERROR(' + err.code + '): ' + err.message);
         }, navigatorOptions);
-    };
-    
-    GoogleMap.prototype.retriveUserPosition = function(options){
-        this.detectUserPosition(function(pos){
-            if(pos){
-                options['mapZoom'] = 9;
-                options['mapPosition'] = pos;
-            }
-        }, defaults.navigatorOptions);        
-    };
+    };   
     
     function GoogleAPIControler(){
         
