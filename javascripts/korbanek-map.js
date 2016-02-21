@@ -140,6 +140,16 @@
         }, navigatorOptions);
     };   
     
+    GoogleMap.prototype.putMarker = function(icon, position, map){
+        return new google.maps.Marker({
+            map: map,
+            icon: icon,
+            animation: google.maps.Animation.DROP,
+            position: position,
+            title: 'korbanek-map'
+        });        
+    };
+    
     function GoogleAPIControler(){
         
     };
