@@ -110,10 +110,9 @@
                 that.googleMap.config['mapZoom'] = 9;
                 that.googleMap.config['mapPosition'] = navigatorPosition;
                 that.googleMap.embedMap();
+            }, function(){
+                that.googleMap.embedMap();
             });        
-        }
-        else{
-            this.googleMap.embedMap();
         }
     };
     
@@ -129,14 +128,15 @@
         this.map.setZoom(this.config.mapZoom);    
     };       
     
-    GoogleMap.prototype.detectUserPosition = function(navigatorOptions, callback){
+    GoogleMap.prototype.detectUserPosition = function(navigatorOptions, retrievePosition, geolocationDenied){
         if (!navigator.geolocation){
             return;
         }
         navigator.geolocation.getCurrentPosition(function(position){
-            callback({lat: position.coords.latitude, lng: position.coords.longitude});
+            retrievePosition({lat: position.coords.latitude, lng: position.coords.longitude});
         }, function(err){
-            console.warn('ERROR(' + err.code + '): ' + err.message);
+            console.log('ERROR(' + err.code + '): ' + err.message);
+            geolocationDenied();
         }, navigatorOptions);
     };   
     
