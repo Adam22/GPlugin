@@ -26,6 +26,8 @@
         formControlsCssSet: null,  // Css classes for inside <div>
         labelCssSet: null, // Css classes for form label
         inputCssSet: null, // Css classes for form input field
+        buttonCssSet:null, // Css classes for form button
+        buttonSpanClassSet: null, // Css classes for button text
         inputLabel: 'Address', // Input Label
         inputText: 'text',  // Input Placeholder
         searchButtonText: 'Search',  // Button Text
@@ -81,7 +83,7 @@
         //Detect User Position from Browser
         var mapOptions = $j.extend({}, defaults, options);
         var that = this;
-        $j(this).GoogleMapPlugin.searchFeatureUI(mapOptions, that);
+        $j(this).GoogleMapPlugin.searchFeatureUI(mapOptions, that).initializeMap(mapOptions);        
     };
     
     //Insert Search Field
@@ -89,13 +91,58 @@
         if(mapOptions.searchFeature){
             $j(element).parent().before(
                 '<form class="' + mapOptions.searchFormClassSet + '" role="form">\n\
-                    <div class="form-group' + mapOptions.formControlsCssSet + '>\n\
+                    <div class="form-group ' + mapOptions.formControlsCssSet + '>\n\
                         <label class="' + mapOptions.labelCssSet + '" for="' + mapOptions.bindSearchFeatureTo + '">' + mapOptions.inputLabel + '</label>\n\
                         <input type="text" class="form-control ' + mapOptions.inputCssSet + '" id="address" placeholder="' + mapOptions.inputText + '">\n\
-                        <button id="' + mapOptions.bindSearchFeatureTo + ' type="submit" class="btn btn-default"><span>' + mapOptions.searchButtonText + '</span></button>\n\                        \n\
+                        <button id="' + mapOptions.bindSearchFeatureTo + ' type="submit" class="btn btn-default ' + mapOptions.buttonCssSet + '><span class="' + mapOptions.buttonSpanClassSet + '">' + mapOptions.searchButtonText + '</span></button>\n\                        \n\
                     </div>\n\
                 </form>');
         }
         return this;
+    };
+    
+    $j.fn.GoogleMapPlugin.initializeMap = function(config){ 
+        this.googleMap = new GoogleMap(config);
+        this.apiControler = new GoogleAPIControler();
+        if(config.detectUserPosition){
+            this.googleMap.retriveUserPosition(this.googleMap.config);
+            this.googleMap.embedMap();
+        }
+    };
+    
+    function GoogleMap(config){
+        this.config = config;
+        this.map;
+    };
+    
+    GoogleMap.prototype.embedMap = function(){    
+        var mapCenter = new google.maps.LatLng(this.config.mapPosition);
+        this.map = new google.maps.Map(document.getElementById(this.config.onContainer), this.config.mapOptions);            
+        this.map.setCenter(mapCenter);
+        this.map.setZoom(this.config.mapZoom);    
+    };       
+    
+    GoogleMap.prototype.detectUserPosition = function(navigatorOptions, callback){
+        if (!navigator.geolocation){
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(function(position){
+            callback({lat: position.coords.latitude, lng: position.coords.longitude});
+        }, function(err){
+            console.warn('ERROR(' + err.code + '): ' + err.message);
+        }, navigatorOptions);
+    };
+    
+    GoogleMap.prototype.retriveUserPosition = function(options){
+        this.detectUserPosition(function(pos){
+            if(pos){
+                options['mapZoom'] = 9;
+                options['mapPosition'] = pos;
+            }
+        }, defaults.navigatorOptions);        
+    };
+    
+    function GoogleAPIControler(){
+        
     };
 }( jQuery ));
