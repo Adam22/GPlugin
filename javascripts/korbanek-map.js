@@ -105,15 +105,15 @@
         this.googleMap = new GoogleMap(config);
         this.apiControler = new GoogleAPIControler();
         var that = this;        
-        if(config.detectUserPosition){
-            this.googleMap.detectUserPosition(this.googleMap.config, function(navigatorPosition){
+        this.googleMap.detectUserPosition(this.googleMap.config, function(navigatorPosition){
+            if(config.detectUserPosition){
                 that.googleMap.config['mapZoom'] = 9;
                 that.googleMap.config['mapPosition'] = navigatorPosition;
-                that.googleMap.embedMap();
-            }, function(){
-                that.googleMap.embedMap();
-            });        
-        }
+            }
+            that.googleMap.embedMap();
+        }, function(){
+            that.googleMap.embedMap();
+        });                
     };
     
     function GoogleMap(config){
