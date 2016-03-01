@@ -1,6 +1,16 @@
 (function ( $j ) {
     //Declare no-conflict
     $j = jQuery.noConflict();
+    var o = $j({});
+    $j.subscribe = function(){
+        o.bind.apply(o, arguments);
+    };
+    $j.unsubscribe = function(){
+        o.unbind.apply(o, arguments);
+    };
+    $j.publish = function(){
+        o.trigger.apply(o, arguments);
+    };
     $j(document).ready(function(){
         $j('div[data-' + defaults.mapSettingsDataAttr + ']').each(function(){            
             $j(this).GoogleMapPlugin();
@@ -104,21 +114,26 @@
     $j.fn.GoogleMapPlugin.initializeMap = function(config){ 
         this.googleMap = new GoogleMap(config);
         this.apiControler = new GoogleAPIControler();
-        var that = this;        
-        this.googleMap.detectUserPosition(this.googleMap.config, function(navigatorPosition){
+        var that = this;  
+        $j.subscribe('geolocationDenied', this.googleMap.setupNewMap());
+        $j.subscribe('positionRetrived', function(e, navigatorPosition){
             if(config.detectUserPosition){
                 that.googleMap.config['mapZoom'] = 9;
                 that.googleMap.config['mapPosition'] = navigatorPosition;
-            }
+            }      
             that.googleMap.setupNewMap();
+        });
+        this.googleMap.detectUserPosition(this.googleMap.config, function(navigatorPosition){
+            $j.publish('positionRetrived', navigatorPosition);
         }, function(){
-            that.googleMap.setupNewMap();
+            $j.publish('geolocationDenied', {});
         });                
     };
     
     function GoogleMap(config){
         this.config = config;
         this.map;
+        this.markerSet;
     };
     
     GoogleMap.prototype.setupNewMap = function(){
@@ -155,9 +170,49 @@
         });
     };
     
-    GoogleMap.prototype.retreiveMarkerPosition = function(){};
-    //GoogleMap.prototype.
+    GoogleMap.prototype.getMarkersLatLng = function(from){
+        var destinations = new Array();
+        $j(from).each(function(){
+            var position = new google.maps.LatLng({lat: $j(this).data('lat'), lng: $j(this).data('lng')});
+            destinations.push(position);
+        });
+        return destinations;
+    };
     
+    GoogleMap.prototype.getInfoWindowContent = function(lat, lng){        
+        var selector = '[data-lat="' + lat + '"][data-lng="' + lng + '"]';
+        var content;
+        content = $j(selector).html();
+        return content;
+    };
+    
+    GoogleMap.prototype.setInfoWindowEvent = function(map, marker, event, infoWindow){
+        marker.addListener(event, function(){   
+            infoWindow.open(map, marker);
+        });
+    };
+    
+    GoogleMap.prototype.setInfoWindow = function(content){
+        var infoWindow = new google.maps.InfoWindow({
+            content: content
+        });
+        return infoWindow;
+    };
+    
+    GoogleMap.prototype.createMarkers = function(icon, sourceSet){
+        var markers = Array();
+        for(var i = 0; i < sourceSet.length; i++){
+            var marker = this.putMarker(icon, sourceSet[i], null);
+            if(this.config.activeInfoWindows){
+                var infoWindow = this.setInfoWindow(this.getInfoWindowContent(marker.getPosition().lat(), marker.getPosition().lng()));            
+                this.setInfoWindowEvent(marker, this.config.openInfoWindowOn, infoWindow);
+            }
+            this.markerSet.push(marker);                
+        };
+        return markers;
+    };
+    
+       
     function GoogleAPIControler(){
         
     };
