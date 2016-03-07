@@ -86,11 +86,7 @@
         var options = $j(this).data(defaults.mapSettingsDataAttr);
         //Container ID
         options['onContainer'] = $j(this).attr('id');  
-        //Info Window Open event
-        options['openInfoWindowOn'] = null;
-        //Start Search On event
-        options['startSearchOn'] = null;
-        //Detect User Position from Browser
+        //Extend default config
         var mapOptions = $j.extend({}, defaults, options);
         var that = this;
         $j(this).GoogleMapPlugin.searchFeatureUI(mapOptions, that).initializeMap(mapOptions);        
@@ -114,8 +110,8 @@
     $j.fn.GoogleMapPlugin.initializeMap = function(config){ 
         this.googleMap = new GoogleMap(config);
         this.apiControler = new GoogleAPIControler(); 
-        this.googleMap.detectUserPosition(this.googleMap.config, function(navigatorPosition){
-            $j.publish('positionRetrived', navigatorPosition);
+        this.googleMap.detectUserPosition(this.googleMap.config, function(position){
+            $j.publish('positionRetrived', position);
         }, function(){
             $j.publish('geolocationDenied', {});
         });        
@@ -124,8 +120,8 @@
     function GoogleMap(config){
         this.config = config;
         this.map = null;
-        this.markerSet = this.createMarkers(this.config.defaultMarkerIcon, this.getMarkersLatLng(this.config.markersSourceClass));
-        this.centralMarker = this.createMarkers(this.config.centralMarkerIcon, this.getMarkersLatLng(this.config.centralMarkerClass));
+        this.markerSet = null;
+        this.centralMarker = null;
         this.subscribeEvents();
     };
     
@@ -135,6 +131,8 @@
         this.map.setCenter(mapCenter);
         this.map.setZoom(this.config.mapZoom);
         this.mapResize(this.map);
+        this.markerSet = this.createMarkers(this.config.defaultMarkerIcon, this.getMarkersLatLng(this.config.markersSourceClass), this.map);
+        this.centralMarker = this.createMarkers(this.config.centralMarkerIcon, this.getMarkersLatLng(this.config.centralMarkerClass), this.map);
         if(this.config.showAll){
             this.setupMarkersOnMap(this.markerSet, this.map);
         }
@@ -146,10 +144,10 @@
     GoogleMap.prototype.subscribeEvents = function(){
         var that = this;
         $j.subscribe('geolocationDenied', this.setupNewMap());
-        $j.subscribe('positionRetrived', function(e, navigatorPosition){
+        $j.subscribe('positionRetrived', function(e, position){
         if(that.config.detectUserPosition){
             that.config['mapZoom'] = 9;
-            that.config['mapPosition'] = navigatorPosition;
+            that.config['mapPosition'] = position;
         }      
         that.setupNewMap();
         });
@@ -212,6 +210,7 @@
     };
     
     GoogleMap.prototype.createMarkers = function(icon, sourceSet, map){
+        console.log(map);
         var markers = Array();
         for(var i = 0; i < sourceSet.length; i++){
             var marker = this.putMarker(icon, sourceSet[i], null);
