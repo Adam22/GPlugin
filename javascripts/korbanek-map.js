@@ -86,11 +86,7 @@
         var options = $j(this).data(defaults.mapSettingsDataAttr);
         //Container ID
         options['onContainer'] = $j(this).attr('id');  
-        //Info Window Open event
-        options['openInfoWindowOn'] = null;
-        //Start Search On event
-        options['startSearchOn'] = null;
-        //Detect User Position from Browser
+        //Extend default config
         var mapOptions = $j.extend({}, defaults, options);
         var that = this;
         $j(this).GoogleMapPlugin.searchFeatureUI(mapOptions, that).initializeMap(mapOptions);        
