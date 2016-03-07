@@ -113,35 +113,47 @@
     
     $j.fn.GoogleMapPlugin.initializeMap = function(config){ 
         this.googleMap = new GoogleMap(config);
-        this.apiControler = new GoogleAPIControler();
-        var that = this;  
-        $j.subscribe('geolocationDenied', this.googleMap.setupNewMap());
-        $j.subscribe('positionRetrived', function(e, navigatorPosition){
-            if(config.detectUserPosition){
-                that.googleMap.config['mapZoom'] = 9;
-                that.googleMap.config['mapPosition'] = navigatorPosition;
-            }      
-            that.googleMap.setupNewMap();
-        });
+        this.apiControler = new GoogleAPIControler(); 
         this.googleMap.detectUserPosition(this.googleMap.config, function(navigatorPosition){
             $j.publish('positionRetrived', navigatorPosition);
         }, function(){
             $j.publish('geolocationDenied', {});
-        });                
+        });        
     };
     
     function GoogleMap(config){
         this.config = config;
         this.map;
-        this.markerSet;
+        this.markerSet = this.createMarkers(this.config.defaultMarkerIcon, this.getMarkersLatLng(this.config.markersSourceClass));
+        this.centralMarker = this.createMarkers(this.config.centralMarkerIcon, this.getMarkersLatLng(this.config.centralMarkerClass));
+        this.subscribeEvents();
     };
     
     GoogleMap.prototype.setupNewMap = function(){
         var mapCenter = new google.maps.LatLng(this.config.mapPosition);
         this.map = new google.maps.Map(document.getElementById(this.config.onContainer), this.config.mapOptions);            
         this.map.setCenter(mapCenter);
-        this.map.setZoom(this.config.mapZoom);    
+        this.map.setZoom(this.config.mapZoom);
+        this.mapResize(this.map);
+        if(this.config.showAll){
+            this.setupMarkersOnMap(this.markerSet, this.map);
+        }
+        else{
+            this.setupMarkersOnMap(this.centralMarker, this.map);    
+        }
     };       
+        
+    GoogleMap.prototype.subscribeEvents = function(){
+        var that = this;
+        $j.subscribe('geolocationDenied', this.setupNewMap());
+        $j.subscribe('positionRetrived', function(e, navigatorPosition){
+        if(that.config.detectUserPosition){
+            that.config['mapZoom'] = 9;
+            that.config['mapPosition'] = navigatorPosition;
+        }      
+        that.setupNewMap();
+        });
+    };
     
     GoogleMap.prototype.detectUserPosition = function(navigatorOptions, retrievePosition, geolocationDenied){
         navigator.geolocation.getCurrentPosition(function(position){
@@ -163,8 +175,8 @@
     };
     
     GoogleMap.prototype.mapResize = function(map){
-        google.maps.event.addDomListener(window, "resize", function() {
-            var center = map.getCenter();
+        google.maps.event.addDomListener(window, "resize", function(){
+            var center = map.getCenter();           
             google.maps.event.trigger(map, "resize");
             map.setCenter(center); 
         });
@@ -205,14 +217,19 @@
             var marker = this.putMarker(icon, sourceSet[i], null);
             if(this.config.activeInfoWindows){
                 var infoWindow = this.setInfoWindow(this.getInfoWindowContent(marker.getPosition().lat(), marker.getPosition().lng()));            
-                this.setInfoWindowEvent(marker, this.config.openInfoWindowOn, infoWindow);
+                this.setInfoWindowEvent(this.map, marker, this.config.openInfoWindowOn, infoWindow);
             }
-            this.markerSet.push(marker);                
+            markers.push(marker);                
         };
         return markers;
     };
     
-       
+    GoogleMap.prototype.setupMarkersOnMap = function(markerSet, map){
+    for (var i = 0; i < markerSet.length; i++){
+            markerSet[i].setMap(map);
+        };
+    };
+    
     function GoogleAPIControler(){
         
     };
