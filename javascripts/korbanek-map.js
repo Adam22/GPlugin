@@ -123,7 +123,7 @@
     
     function GoogleMap(config){
         this.config = config;
-        this.map;
+        this.map = null;
         this.markerSet = this.createMarkers(this.config.defaultMarkerIcon, this.getMarkersLatLng(this.config.markersSourceClass));
         this.centralMarker = this.createMarkers(this.config.centralMarkerIcon, this.getMarkersLatLng(this.config.centralMarkerClass));
         this.subscribeEvents();
@@ -211,13 +211,13 @@
         return infoWindow;
     };
     
-    GoogleMap.prototype.createMarkers = function(icon, sourceSet){
+    GoogleMap.prototype.createMarkers = function(icon, sourceSet, map){
         var markers = Array();
         for(var i = 0; i < sourceSet.length; i++){
             var marker = this.putMarker(icon, sourceSet[i], null);
             if(this.config.activeInfoWindows){
                 var infoWindow = this.setInfoWindow(this.getInfoWindowContent(marker.getPosition().lat(), marker.getPosition().lng()));            
-                this.setInfoWindowEvent(this.map, marker, this.config.openInfoWindowOn, infoWindow);
+                this.setInfoWindowEvent(map, marker, this.config.openInfoWindowOn, infoWindow);
             }
             markers.push(marker);                
         };
@@ -231,7 +231,65 @@
     };
     
     function GoogleAPIControler(){
-        
+        this.geocoder = new google.maps.Geocoder();
+        this.distanceService = new google.maps.DistanceMatrixService();
+        this.bounds = new google.maps.LatLngBounds();
     };
     
+    GoogleAPIControler.prototype.geocodeAddress = function(address, callback){
+        var latlng;
+        this.geocoder.geocode({'address':address},function(results, status){
+            if(status === google.maps.GeocoderStatus.OK){
+                    latlng  = results[0].geometry.location;
+            }else{
+                    alert("Geocode was not successful:" + status);
+            }                        
+            callback(latlng);
+        });  
+    };
+    
+    GoogleAPIControler.prototype.calculateDistance = function(distanceMatrixService, origin, destinationSet, self, callback){
+        distanceMatrixService.getDistanceMatrix({
+            origins: [origin],
+            destinations: destinationSet,
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC,
+            avoidHighways: false,
+            avoidTolls: false                        
+        }, function(response, status){
+            if (status === google.maps.DistanceMatrixStatus.OK) {
+                var origins = response.originAddresses;                    
+                var minDistance = Infinity;
+                var nearestAddress;
+                var from;
+                for (var i = 0; i < origins.length; i++) {
+                    var results = response.rows[i].elements;
+                        from = origins[i];
+                        for (var j = 0; j < results.length; j++) {
+                            var element = results[j];                   
+                            if (minDistance > element.distance.value){
+                                minDistance = element.distance.value;
+                                nearestAddress =  destinationSet[j];
+                            }
+                        }
+                }
+                callback(self, nearestAddress, from);
+            }
+           });
+    };
+    
+    GoogleAPIControler.prototype.getOriginAddress = function(from){
+        var address = document.getElementById(from).value;
+        return address;
+    };
+    
+    GoogleAPIControler.prototype.setBounds = function(korbanekMap){
+        var bounds = new google.maps.LatLngBounds();
+        for(var i = 0; i < korbanekMap.config.defaultMarkerSet.length; i++) {
+            bounds.extend(korbanekMap.config.defaultMarkerSet[i].getPosition());                        
+        }
+        korbanekMap.map.setCenter(bounds.getCenter());            
+        korbanekMap.map.fitBounds(bounds);
+        korbanekMap.map.setZoom(korbanekMap.map.getZoom() - 1); 
+    };    
 }( jQuery ));
