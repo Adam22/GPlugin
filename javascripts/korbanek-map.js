@@ -86,11 +86,7 @@
         var options = $j(this).data(defaults.mapSettingsDataAttr);
         //Container ID
         options['onContainer'] = $j(this).attr('id');  
-        //Info Window Open event
-        options['openInfoWindowOn'] = null;
-        //Start Search On event
-        options['startSearchOn'] = null;
-        //Detect User Position from Browser
+        //Extend default config
         var mapOptions = $j.extend({}, defaults, options);
         var that = this;
         $j(this).GoogleMapPlugin.searchFeatureUI(mapOptions, that).initializeMap(mapOptions);        
@@ -100,13 +96,11 @@
     $j.fn.GoogleMapPlugin.searchFeatureUI = function(mapOptions, element){
         if(mapOptions.searchFeature){
             $j(element).parent().before(
-                '<form class="' + mapOptions.searchFormClassSet + '" role="form">\n\
-                    <div class="form-group ' + mapOptions.formControlsCssSet + '>\n\
-                        <label class="' + mapOptions.labelCssSet + '" for="' + mapOptions.bindSearchFeatureTo + '">' + mapOptions.inputLabel + '</label>\n\
-                        <input type="text" class="form-control ' + mapOptions.inputCssSet + '" id="address" placeholder="' + mapOptions.inputText + '">\n\
-                        <button id="' + mapOptions.bindSearchFeatureTo + ' type="submit" class="btn btn-default ' + mapOptions.buttonCssSet + '><span class="' + mapOptions.buttonSpanClassSet + '">' + mapOptions.searchButtonText + '</span></button>\n\                        \n\
-                    </div>\n\
-                </form>');
+                '<div class="form-group ' + mapOptions.formControlsCssSet + '">\n\
+                    <label class="' + mapOptions.labelCssSet + '" for="' + mapOptions.bindSearchFeatureTo + '">' + mapOptions.inputLabel + '</label>\n\
+                    <input type="text" class="form-control ' + mapOptions.inputCssSet + '" id="address" placeholder="' + mapOptions.inputText + '">\n\
+                    <button id="' + mapOptions.bindSearchFeatureTo + '" type="submit" class="btn btn-default ' + mapOptions.buttonCssSet + '><span class="' + mapOptions.buttonSpanClassSet + '">' + mapOptions.searchButtonText + '</span></button>\n\
+                </div>');
         }
         return this;
     };
@@ -114,8 +108,8 @@
     $j.fn.GoogleMapPlugin.initializeMap = function(config){ 
         this.googleMap = new GoogleMap(config);
         this.apiControler = new GoogleAPIControler(); 
-        this.googleMap.detectUserPosition(this.googleMap.config, function(navigatorPosition){
-            $j.publish('positionRetrived', navigatorPosition);
+        this.googleMap.detectUserPosition(this.googleMap.config, function(position){
+            $j.publish('positionRetrived', position);
         }, function(){
             $j.publish('geolocationDenied', {});
         });        
@@ -123,9 +117,10 @@
     
     function GoogleMap(config){
         this.config = config;
-        this.map;
-        this.markerSet = this.createMarkers(this.config.defaultMarkerIcon, this.getMarkersLatLng(this.config.markersSourceClass));
-        this.centralMarker = this.createMarkers(this.config.centralMarkerIcon, this.getMarkersLatLng(this.config.centralMarkerClass));
+        this.map = null;
+        this.markerSet = null;
+        this.centralMarker = null;
+        this.googleAPIcotroler = new GoogleAPIControler();
         this.subscribeEvents();
     };
     
@@ -135,23 +130,31 @@
         this.map.setCenter(mapCenter);
         this.map.setZoom(this.config.mapZoom);
         this.mapResize(this.map);
+        this.markerSet = this.createMarkers(this.config.defaultMarkerIcon, this.getMarkersLatLng(this.config.markersSourceClass), this.map);
+        this.centralMarker = this.createMarkers(this.config.centralMarkerIcon, this.getMarkersLatLng(this.config.centralMarkerClass), this.map);
         if(this.config.showAll){
             this.setupMarkersOnMap(this.markerSet, this.map);
         }
         else{
             this.setupMarkersOnMap(this.centralMarker, this.map);    
         }
+        if(this.config.searchFeature){
+            this.setupSearchFeature();
+        }
     };       
         
     GoogleMap.prototype.subscribeEvents = function(){
         var that = this;
         $j.subscribe('geolocationDenied', this.setupNewMap());
-        $j.subscribe('positionRetrived', function(e, navigatorPosition){
+        $j.subscribe('positionRetrived', function(e, position){
         if(that.config.detectUserPosition){
             that.config['mapZoom'] = 9;
-            that.config['mapPosition'] = navigatorPosition;
+            that.config['mapPosition'] = position;
         }      
         that.setupNewMap();
+        });
+        $j.subscribe('nearestPointFound', function(to, from){
+            that.renderSearchResults(to, from);
         });
     };
     
@@ -211,13 +214,13 @@
         return infoWindow;
     };
     
-    GoogleMap.prototype.createMarkers = function(icon, sourceSet){
+    GoogleMap.prototype.createMarkers = function(icon, sourceSet, map){
         var markers = Array();
         for(var i = 0; i < sourceSet.length; i++){
             var marker = this.putMarker(icon, sourceSet[i], null);
             if(this.config.activeInfoWindows){
                 var infoWindow = this.setInfoWindow(this.getInfoWindowContent(marker.getPosition().lat(), marker.getPosition().lng()));            
-                this.setInfoWindowEvent(this.map, marker, this.config.openInfoWindowOn, infoWindow);
+                this.setInfoWindowEvent(map, marker, this.config.openInfoWindowOn, infoWindow);
             }
             markers.push(marker);                
         };
@@ -230,8 +233,86 @@
         };
     };
     
-    function GoogleAPIControler(){
-        
+    GoogleMap.prototype.clearMarkers = function(){
+        this.setupMarkersOnMap(this.config.defaultMarkerSet, null);
     };
     
+    GoogleMap.prototype.setupSearchFeature = function(){
+        this.googleAPIcotroler.geocoder = new google.maps.Geocoder();
+        this.googleAPIcotroler.distanceService = new google.maps.DistanceMatrixService();        
+        var that = this;
+        document.getElementById(this.config.bindSearchFeatureTo).addEventListener(this.config.startSearchOn, function(){            
+            var address = that.googleAPIcotroler.getOriginAddress(that.config.addressInputId);
+            that.googleAPIcotroler.calculateDistance(that.distanceService, address, that.getMarkersLatLng(that.config.markersSourceClass));
+        });
+    };
+    
+    GoogleMap.prototype.renderSearchResults = function(to, from){
+        console.log(to + ' ' + from);
+    };
+    
+    function GoogleAPIControler(){
+        this.geocoder = null;
+        this.distanceService = null;
+        this.bounds = new google.maps.LatLngBounds();
+    };
+    
+    GoogleAPIControler.prototype.geocodeAddress = function(address, callback){
+        var latlng;
+        this.geocoder.geocode({'address':address},function(results, status){
+            if(status === google.maps.GeocoderStatus.OK){
+                    latlng  = results[0].geometry.location;
+            }else{
+                    alert("Geocode was not successful:" + status);
+            }                        
+            callback(latlng);
+        });  
+    };
+    
+    GoogleAPIControler.prototype.calculateDistance = function(origin, destinationSet){
+        this.distanceService.getDistanceMatrix({
+            origins: [origin],
+            destinations: destinationSet,
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC,
+            avoidHighways: false,
+            avoidTolls: false  
+        }, function(response, status){
+            if (status === google.maps.DistanceMatrixStatus.OK){                            
+                var origins = response.originAddresses;                    
+                var minDistance = Infinity;
+                var nearestAddress;
+                var from;
+                for (var i = 0; i < origins.length; i++) {
+                    var results = response.rows[i].elements;
+                    from = origins[i];
+                    for (var j = 0; j < results.length; j++) {
+                        var element = results[j];                   
+                        if (minDistance > element.distance.value){
+                            minDistance = element.distance.value;
+                            nearestAddress =  destinationSet[j];
+                        }
+                    }
+                }
+                $j.publish('nearestPointFound', nearestAddress, from);
+            }else{
+            alert('Error was: ' + status);
+            }                
+        });
+    };
+    
+    GoogleAPIControler.prototype.getOriginAddress = function(from){
+        var address = document.getElementById(from).value;
+        return address;
+    };
+    
+    GoogleAPIControler.prototype.setBounds = function(korbanekMap){
+        var bounds = new google.maps.LatLngBounds();
+        for(var i = 0; i < korbanekMap.config.defaultMarkerSet.length; i++) {
+            bounds.extend(korbanekMap.config.defaultMarkerSet[i].getPosition());                        
+        }
+        korbanekMap.map.setCenter(bounds.getCenter());            
+        korbanekMap.map.fitBounds(bounds);
+        korbanekMap.map.setZoom(korbanekMap.map.getZoom() - 1); 
+    };    
 }( jQuery ));
