@@ -96,13 +96,11 @@
     $j.fn.GoogleMapPlugin.searchFeatureUI = function(mapOptions, element){
         if(mapOptions.searchFeature){
             $j(element).parent().before(
-                '<form class="' + mapOptions.searchFormClassSet + '" role="form">\n\
-                    <div class="form-group ' + mapOptions.formControlsCssSet + '>\n\
-                        <label class="' + mapOptions.labelCssSet + '" for="' + mapOptions.bindSearchFeatureTo + '">' + mapOptions.inputLabel + '</label>\n\
-                        <input type="text" class="form-control ' + mapOptions.inputCssSet + '" id="address" placeholder="' + mapOptions.inputText + '">\n\
-                        <button id="' + mapOptions.bindSearchFeatureTo + ' type="submit" class="btn btn-default ' + mapOptions.buttonCssSet + '><span class="' + mapOptions.buttonSpanClassSet + '">' + mapOptions.searchButtonText + '</span></button>\n\                        \n\
-                    </div>\n\
-                </form>');
+                '<div class="form-group ' + mapOptions.formControlsCssSet + '">\n\
+                    <label class="' + mapOptions.labelCssSet + '" for="' + mapOptions.bindSearchFeatureTo + '">' + mapOptions.inputLabel + '</label>\n\
+                    <input type="text" class="form-control ' + mapOptions.inputCssSet + '" id="address" placeholder="' + mapOptions.inputText + '">\n\
+                    <button id="' + mapOptions.bindSearchFeatureTo + '" type="submit" class="btn btn-default ' + mapOptions.buttonCssSet + '><span class="' + mapOptions.buttonSpanClassSet + '">' + mapOptions.searchButtonText + '</span></button>\n\
+                </div>');
         }
         return this;
     };
@@ -122,6 +120,7 @@
         this.map = null;
         this.markerSet = null;
         this.centralMarker = null;
+        this.googleAPIcotroler = new GoogleAPIControler();
         this.subscribeEvents();
     };
     
@@ -139,6 +138,9 @@
         else{
             this.setupMarkersOnMap(this.centralMarker, this.map);    
         }
+        if(this.config.searchFeature){
+            this.setupSearchFeature();
+        }
     };       
         
     GoogleMap.prototype.subscribeEvents = function(){
@@ -150,6 +152,9 @@
             that.config['mapPosition'] = position;
         }      
         that.setupNewMap();
+        });
+        $j.subscribe('nearestPointFound', function(to, from){
+            that.renderSearchResults(to, from);
         });
     };
     
@@ -210,7 +215,6 @@
     };
     
     GoogleMap.prototype.createMarkers = function(icon, sourceSet, map){
-        console.log(map);
         var markers = Array();
         for(var i = 0; i < sourceSet.length; i++){
             var marker = this.putMarker(icon, sourceSet[i], null);
@@ -229,9 +233,27 @@
         };
     };
     
+    GoogleMap.prototype.clearMarkers = function(){
+        this.setupMarkersOnMap(this.config.defaultMarkerSet, null);
+    };
+    
+    GoogleMap.prototype.setupSearchFeature = function(){
+        this.googleAPIcotroler.geocoder = new google.maps.Geocoder();
+        this.googleAPIcotroler.distanceService = new google.maps.DistanceMatrixService();        
+        var that = this;
+        document.getElementById(this.config.bindSearchFeatureTo).addEventListener(this.config.startSearchOn, function(){            
+            var address = that.googleAPIcotroler.getOriginAddress(that.config.addressInputId);
+            that.googleAPIcotroler.calculateDistance(that.distanceService, address, that.getMarkersLatLng(that.config.markersSourceClass));
+        });
+    };
+    
+    GoogleMap.prototype.renderSearchResults = function(to, from){
+        console.log(to + ' ' + from);
+    };
+    
     function GoogleAPIControler(){
-        this.geocoder = new google.maps.Geocoder();
-        this.distanceService = new google.maps.DistanceMatrixService();
+        this.geocoder = null;
+        this.distanceService = null;
         this.bounds = new google.maps.LatLngBounds();
     };
     
@@ -247,34 +269,36 @@
         });  
     };
     
-    GoogleAPIControler.prototype.calculateDistance = function(distanceMatrixService, origin, destinationSet, self, callback){
-        distanceMatrixService.getDistanceMatrix({
+    GoogleAPIControler.prototype.calculateDistance = function(origin, destinationSet){
+        this.distanceService.getDistanceMatrix({
             origins: [origin],
             destinations: destinationSet,
             travelMode: google.maps.TravelMode.DRIVING,
             unitSystem: google.maps.UnitSystem.METRIC,
             avoidHighways: false,
-            avoidTolls: false                        
+            avoidTolls: false  
         }, function(response, status){
-            if (status === google.maps.DistanceMatrixStatus.OK) {
+            if (status === google.maps.DistanceMatrixStatus.OK){                            
                 var origins = response.originAddresses;                    
                 var minDistance = Infinity;
                 var nearestAddress;
                 var from;
                 for (var i = 0; i < origins.length; i++) {
                     var results = response.rows[i].elements;
-                        from = origins[i];
-                        for (var j = 0; j < results.length; j++) {
-                            var element = results[j];                   
-                            if (minDistance > element.distance.value){
-                                minDistance = element.distance.value;
-                                nearestAddress =  destinationSet[j];
-                            }
+                    from = origins[i];
+                    for (var j = 0; j < results.length; j++) {
+                        var element = results[j];                   
+                        if (minDistance > element.distance.value){
+                            minDistance = element.distance.value;
+                            nearestAddress =  destinationSet[j];
                         }
+                    }
                 }
-                callback(self, nearestAddress, from);
-            }
-           });
+                $j.publish('nearestPointFound', nearestAddress, from);
+            }else{
+            alert('Error was: ' + status);
+            }                
+        });
     };
     
     GoogleAPIControler.prototype.getOriginAddress = function(from){
