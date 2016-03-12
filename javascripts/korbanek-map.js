@@ -145,13 +145,15 @@
         
     GoogleMap.prototype.subscribeEvents = function(){
         var that = this;
-        $j.subscribe('geolocationDenied', this.setupNewMap());
+        $j.subscribe('geolocationDenied', function(e){
+            that.setupNewMap();
+        });
         $j.subscribe('positionRetrived', function(e, position){
-        if(that.config.detectUserPosition){
-            that.config['mapZoom'] = 9;
-            that.config['mapPosition'] = position;
-        }      
-        that.setupNewMap();
+            if(that.config.detectUserPosition){
+                that.config['mapZoom'] = 9;
+                that.config['mapPosition'] = position;
+            }      
+            that.setupNewMap();
         });
         $j.subscribe('nearestPointFound', function(to, from){
             that.renderSearchResults(to, from);
@@ -243,7 +245,7 @@
         var that = this;
         document.getElementById(this.config.bindSearchFeatureTo).addEventListener(this.config.startSearchOn, function(){            
             var address = that.googleAPIcotroler.getOriginAddress(that.config.addressInputId);
-            that.googleAPIcotroler.calculateDistance(that.distanceService, address, that.getMarkersLatLng(that.config.markersSourceClass));
+            that.googleAPIcotroler.calculateDistance(address, that.getMarkersLatLng(that.config.markersSourceClass));
         });
     };
     
@@ -311,8 +313,8 @@
         for(var i = 0; i < korbanekMap.config.defaultMarkerSet.length; i++) {
             bounds.extend(korbanekMap.config.defaultMarkerSet[i].getPosition());                        
         }
-        korbanekMap.map.setCenter(bounds.getCenter());            
+        korbanekMap.map.setCenter(bounds.getCenter());
         korbanekMap.map.fitBounds(bounds);
-        korbanekMap.map.setZoom(korbanekMap.map.getZoom() - 1); 
+        korbanekMap.map.setZoom(korbanekMap.map.getZoom() - 1);
     };    
 }( jQuery ));
