@@ -120,6 +120,7 @@
         this.map = null;
         this.markerSet = null;
         this.centralMarker = null;
+        this.searchResults = null;
         this.googleAPIcotroler = new GoogleAPIControler();
         this.subscribeEvents();
     };
@@ -136,9 +137,9 @@
             this.setupMarkersOnMap(this.markerSet, this.map);
         }
         else{
-            this.setupMarkersOnMap(this.centralMarker, this.map);    
+            this.setupMarkersOnMap(this.centralMarker, this.map);
         }
-        if(this.config.searchFeature){
+        if(this.config.searchFeature){        
             this.setupSearchFeature();
         }
     };       
@@ -155,8 +156,8 @@
             }      
             that.setupNewMap();
         });
-        $j.subscribe('nearestPointFound', function(to, from){
-            that.renderSearchResults(to, from);
+        $j.subscribe('nearestPointFound', function(e, results){
+            that.renderSearchResults(results);
         });
     };
     
@@ -236,7 +237,7 @@
     };
     
     GoogleMap.prototype.clearMarkers = function(){
-        this.setupMarkersOnMap(this.config.defaultMarkerSet, null);
+        this.setupMarkersOnMap(this.markerSet, null);        
     };
     
     GoogleMap.prototype.setupSearchFeature = function(){
@@ -244,19 +245,22 @@
         this.googleAPIcotroler.distanceService = new google.maps.DistanceMatrixService();        
         var that = this;
         document.getElementById(this.config.bindSearchFeatureTo).addEventListener(this.config.startSearchOn, function(){            
-            var address = that.googleAPIcotroler.getOriginAddress(that.config.addressInputId);
+            var address = that.googleAPIcotroler.getOriginAddress(that.config.addressInputId);            
             that.googleAPIcotroler.calculateDistance(address, that.getMarkersLatLng(that.config.markersSourceClass));
         });
     };
     
-    GoogleMap.prototype.renderSearchResults = function(to, from){
-        console.log(to + ' ' + from);
+    GoogleMap.prototype.renderSearchResults = function(results){
+        this.clearMarkers();        
+        results['to'] = this.putMarker(this.config.defaultMarkerIcon, results['to'], this.map);
+        results['from'] = this.putMarker(this.config.defaultMarkerIcon, results['from'], this.map);
+        
     };
     
     function GoogleAPIControler(){
         this.geocoder = null;
         this.distanceService = null;
-        this.bounds = new google.maps.LatLngBounds();
+        this.bounds = null;
     };
     
     GoogleAPIControler.prototype.geocodeAddress = function(address, callback){
@@ -266,12 +270,13 @@
                     latlng  = results[0].geometry.location;
             }else{
                     alert("Geocode was not successful:" + status);
-            }                        
+            }
             callback(latlng);
         });  
     };
     
     GoogleAPIControler.prototype.calculateDistance = function(origin, destinationSet){
+        var that = this;
         this.distanceService.getDistanceMatrix({
             origins: [origin],
             destinations: destinationSet,
@@ -296,7 +301,11 @@
                         }
                     }
                 }
-                $j.publish('nearestPointFound', nearestAddress, from);
+                that.geocodeAddress(from, function(latlng){
+                    var res = {'from': latlng, 'to': nearestAddress};
+                    $j.publish('nearestPointFound', res);
+                });
+                
             }else{
             alert('Error was: ' + status);
             }                
@@ -311,7 +320,7 @@
     GoogleAPIControler.prototype.setBounds = function(korbanekMap){
         var bounds = new google.maps.LatLngBounds();
         for(var i = 0; i < korbanekMap.config.defaultMarkerSet.length; i++) {
-            bounds.extend(korbanekMap.config.defaultMarkerSet[i].getPosition());                        
+            bounds.extend(korbanekMap.config.defaultMarkerSet[i].getPosition());                     
         }
         korbanekMap.map.setCenter(bounds.getCenter());
         korbanekMap.map.fitBounds(bounds);
