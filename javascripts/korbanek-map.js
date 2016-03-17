@@ -245,16 +245,21 @@
         this.googleAPIcotroler.distanceService = new google.maps.DistanceMatrixService();        
         var that = this;
         document.getElementById(this.config.bindSearchFeatureTo).addEventListener(this.config.startSearchOn, function(){            
-            var address = that.googleAPIcotroler.getOriginAddress(that.config.addressInputId);            
+            var address = that.googleAPIcotroler.getOriginAddress(that.config.addressInputId)
+            address = address + " Polska"            
             that.googleAPIcotroler.calculateDistance(address, that.getMarkersLatLng(that.config.markersSourceClass));
         });
     };
-    
-    GoogleMap.prototype.renderSearchResults = function(results){
+
+    GoogleMap.prototype.renderSearchResults = function(results){        
+        var infoWindow;
         this.clearMarkers();        
-        results['to'] = this.putMarker(this.config.defaultMarkerIcon, results['to'], this.map);
-        results['from'] = this.putMarker(this.config.defaultMarkerIcon, results['from'], this.map);
-        
+        this.googleAPIcotroler.setBounds(this.map, results);
+        this.markerSet = [];
+        infoWindow = this.setInfoWindow(this.getInfoWindowContent());
+        this.markerSet.push(this.putMarker(this.config.defaultMarkerIcon, results['to'], this.map));       
+        infoWindow = this.setInfoWindow(this.getInfoWindowContent(this.markerSet[0].getPosition().lat(), this.markerSet[0].getPosition().lng()));
+        this.setInfoWindowEvent(this.map, this.markerSet[0], this.config.openInfoWindowOn, infoWindow);        
     };
     
     function GoogleAPIControler(){
@@ -317,13 +322,13 @@
         return address;
     };
     
-    GoogleAPIControler.prototype.setBounds = function(korbanekMap){
+    GoogleAPIControler.prototype.setBounds = function(map, results){
         var bounds = new google.maps.LatLngBounds();
-        for(var i = 0; i < korbanekMap.config.defaultMarkerSet.length; i++) {
-            bounds.extend(korbanekMap.config.defaultMarkerSet[i].getPosition());                     
+        for(var key in results) {            
+            bounds.extend(results[key]);
         }
-        korbanekMap.map.setCenter(bounds.getCenter());
-        korbanekMap.map.fitBounds(bounds);
-        korbanekMap.map.setZoom(korbanekMap.map.getZoom() - 1);
+        map.setCenter(bounds.getCenter());
+        map.fitBounds(bounds);
+        map.setZoom(map.getZoom() - 1);
     };    
 }( jQuery ));
