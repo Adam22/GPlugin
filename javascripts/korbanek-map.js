@@ -131,13 +131,13 @@
         this.map.setCenter(mapCenter);
         this.map.setZoom(this.config.mapZoom);
         this.mapResize(this.map);
-        this.markerSet = this.createMarkers(this.config.defaultMarkerIcon, this.getMarkersLatLng(this.config.markersSourceClass), this.map);
-        this.centralMarker = this.createMarkers(this.config.centralMarkerIcon, this.getMarkersLatLng(this.config.centralMarkerClass), this.map);
         if(this.config.showAll){
+            this.markerSet = this.createMarkers(this.config.defaultMarkerIcon, this.getMarkersLatLng(this.config.markersSourceClass), this.map);
             this.setupMarkersOnMap(this.markerSet, this.map);
         }
         else{
-            this.setupMarkersOnMap(this.centralMarker, this.map);
+            this.markerSet = this.createMarkers(this.config.centralMarkerIcon, this.getMarkersLatLng(this.config.centralMarkerClass), this.map);
+            this.setupMarkersOnMap(this.markerSet , this.map);
         }
         if(this.config.searchFeature){        
             this.setupSearchFeature();
@@ -240,15 +240,35 @@
         this.setupMarkersOnMap(this.markerSet, null);        
     };
     
-    GoogleMap.prototype.setupSearchFeature = function(){
+    GoogleMap.prototype.setupSearchFeature = function(e){
         this.googleAPIcotroler.geocoder = new google.maps.Geocoder();
-        this.googleAPIcotroler.distanceService = new google.maps.DistanceMatrixService();        
+        this.googleAPIcotroler.distanceService = new google.maps.DistanceMatrixService();
         var that = this;
         document.getElementById(this.config.bindSearchFeatureTo).addEventListener(this.config.startSearchOn, function(){            
-            var address = that.googleAPIcotroler.getOriginAddress(that.config.addressInputId)
-            address = address + " Polska"            
-            that.googleAPIcotroler.calculateDistance(address, that.getMarkersLatLng(that.config.markersSourceClass));
+            that.searchNearestPoint();
         });
+        document.getElementById('address').addEventListener('keydown', function(e){
+            if (e.keyCode === 13){ that.searchNearestPoint(); }
+        });
+    };
+    
+    GoogleMap.prototype.searchNearestPoint = function(){
+        var address = this.googleAPIcotroler.getOriginAddress(this.config.addressInputId);
+        if(this.validateZipCode(address)){
+            address = address + ' Polska';
+        }
+        this.googleAPIcotroler.calculateDistance(address, this.getMarkersLatLng(this.config.markersSourceClass));
+    };
+    
+    GoogleMap.prototype.validateZipCode = function(inputText){
+        var regex = new RegExp('[0-9]{2}\\s[0-9]{3}|[0-9]{2}-[0-9]{3}');               
+        if(regex.exec(inputText)){
+            return true;
+        }
+        else
+        {
+            return false;
+        }        
     };
 
     GoogleMap.prototype.renderSearchResults = function(results){        
