@@ -15,10 +15,8 @@
         $j('div[data-' + defaults.mapSettingsDataAttr + ']').each(function(){            
             $j(this).GoogleMapPlugin();
         });
-    });  
-    
-     var defaults = {
-
+    });     
+    var defaults = {
         //Events
         startSearchOn: 'click',
         openInfoWindowOn: 'click',        
@@ -31,8 +29,7 @@
         mapSettingsDataAttr:'map-config',
         bindSearchFeatureTo: 'submit',
 
-        //Form css Classes
-        searchFormClassSet: null,  // Css classes for <form>
+        //Form css Classes        
         formControlsCssSet: null,  // Css classes for inside <div>
         labelCssSet: null, // Css classes for form label
         inputCssSet: null, // Css classes for form input field
@@ -44,12 +41,10 @@
 
         //Map Default Settings
         detectUserPosition: true,
-        showAll: false,
-        filterZipCode: true,
+        showAll: false,        
         searchFeature: false,
         activeInfoWindows: true,
-        mapZoom: 7,        
-        defaultMarkerSet: [],
+        mapZoom: 7,                
         centralMarkerIcon: {
             url: 'images/marker-central.png', 
             size: new google.maps.Size(19,31),  // central marker icon source
@@ -79,7 +74,6 @@
         maximumAge: 0
         }
     };
-
     //Plugin Definition
     $j.fn.GoogleMapPlugin = function(){               
         //Retrive Data From Html
@@ -90,8 +84,7 @@
         var mapOptions = $j.extend({}, defaults, options);
         var that = this;
         $j(this).GoogleMapPlugin.searchFeatureUI(mapOptions, that).initializeMap(mapOptions);        
-    };
-    
+    };   
     //Insert Search Field
     $j.fn.GoogleMapPlugin.searchFeatureUI = function(mapOptions, element){
         if(mapOptions.searchFeature){
@@ -103,8 +96,7 @@
                 </div>');
         }
         return this;
-    };
-    
+    };    
     $j.fn.GoogleMapPlugin.initializeMap = function(config){ 
         this.googleMap = new GoogleMap(config);
         this.apiControler = new GoogleAPIControler(); 
@@ -113,8 +105,7 @@
         }, function(){
             $j.publish('geolocationDenied', {});
         });        
-    };
-    
+    };    
     function GoogleMap(config){
         this.config = config;
         this.map = null;
@@ -123,8 +114,7 @@
         this.searchResults = null;
         this.googleAPIcotroler = new GoogleAPIControler();
         this.subscribeEvents();
-    };
-    
+    };   
     GoogleMap.prototype.setupNewMap = function(){
         var mapCenter = new google.maps.LatLng(this.config.mapPosition);
         this.map = new google.maps.Map(document.getElementById(this.config.onContainer), this.config.mapOptions);            
@@ -142,8 +132,7 @@
         if(this.config.searchFeature){        
             this.setupSearchFeature();
         }
-    };       
-        
+    };               
     GoogleMap.prototype.subscribeEvents = function(){
         var that = this;
         $j.subscribe('geolocationDenied', function(e){
@@ -159,8 +148,7 @@
         $j.subscribe('nearestPointFound', function(e, results){
             that.renderSearchResults(results);
         });
-    };
-    
+    };    
     GoogleMap.prototype.detectUserPosition = function(navigatorOptions, retrievePosition, geolocationDenied){
         navigator.geolocation.getCurrentPosition(function(position){
             retrievePosition({lat: position.coords.latitude, lng: position.coords.longitude});
@@ -168,8 +156,7 @@
             console.log('ERROR(' + err.code + '): ' + err.message);
             geolocationDenied();
         }, navigatorOptions);
-    };   
-    
+    };    
     GoogleMap.prototype.putMarker = function(icon, position, map){
         return new google.maps.Marker({
             map: map,
@@ -179,7 +166,6 @@
             title: 'korbanek-map'
         });        
     };
-    
     GoogleMap.prototype.mapResize = function(map){
         google.maps.event.addDomListener(window, "resize", function(){
             var center = map.getCenter();           
@@ -187,7 +173,6 @@
             map.setCenter(center); 
         });
     };
-    
     GoogleMap.prototype.getMarkersLatLng = function(from){
         var destinations = new Array();
         $j(from).each(function(){
@@ -196,27 +181,23 @@
         });
         return destinations;
     };
-    
     GoogleMap.prototype.getInfoWindowContent = function(lat, lng){        
         var selector = '[data-lat="' + lat + '"][data-lng="' + lng + '"]';
         var content;
         content = $j(selector).html();
         return content;
     };
-    
     GoogleMap.prototype.setInfoWindowEvent = function(map, marker, event, infoWindow){
         marker.addListener(event, function(){   
             infoWindow.open(map, marker);
         });
     };
-    
     GoogleMap.prototype.setInfoWindow = function(content){
         var infoWindow = new google.maps.InfoWindow({
             content: content
         });
         return infoWindow;
     };
-    
     GoogleMap.prototype.createMarkers = function(icon, sourceSet, map){
         var markers = Array();
         for(var i = 0; i < sourceSet.length; i++){
@@ -229,17 +210,14 @@
         };
         return markers;
     };
-    
     GoogleMap.prototype.setupMarkersOnMap = function(markerSet, map){
     for (var i = 0; i < markerSet.length; i++){
             markerSet[i].setMap(map);
         };
     };
-    
     GoogleMap.prototype.clearMarkers = function(){
         this.setupMarkersOnMap(this.markerSet, null);        
     };
-    
     GoogleMap.prototype.setupSearchFeature = function(e){
         this.googleAPIcotroler.geocoder = new google.maps.Geocoder();
         this.googleAPIcotroler.distanceService = new google.maps.DistanceMatrixService();
@@ -251,7 +229,6 @@
             if (e.keyCode === 13){ that.searchNearestPoint(); }
         });
     };
-    
     GoogleMap.prototype.searchNearestPoint = function(){
         var address = this.googleAPIcotroler.getOriginAddress(this.config.addressInputId);
         if(this.validateZipCode(address)){
@@ -259,7 +236,6 @@
         }
         this.googleAPIcotroler.calculateDistance(address, this.getMarkersLatLng(this.config.markersSourceClass));
     };
-    
     GoogleMap.prototype.validateZipCode = function(inputText){
         var regex = new RegExp('[0-9]{2}\\s[0-9]{3}|[0-9]{2}-[0-9]{3}');               
         if(regex.exec(inputText)){
@@ -270,7 +246,6 @@
             return false;
         }        
     };
-
     GoogleMap.prototype.renderSearchResults = function(results){        
         var infoWindow;
         this.clearMarkers();        
@@ -280,14 +255,12 @@
         this.markerSet.push(this.putMarker(this.config.defaultMarkerIcon, results['to'], this.map));       
         infoWindow = this.setInfoWindow(this.getInfoWindowContent(this.markerSet[0].getPosition().lat(), this.markerSet[0].getPosition().lng()));
         this.setInfoWindowEvent(this.map, this.markerSet[0], this.config.openInfoWindowOn, infoWindow);        
-    };
-    
+    };    
     function GoogleAPIControler(){
         this.geocoder = null;
         this.distanceService = null;
         this.bounds = null;
-    };
-    
+    };    
     GoogleAPIControler.prototype.geocodeAddress = function(address, callback){
         var latlng;
         this.geocoder.geocode({'address':address},function(results, status){
@@ -298,8 +271,7 @@
             }
             callback(latlng);
         });  
-    };
-    
+    };    
     GoogleAPIControler.prototype.calculateDistance = function(origin, destinationSet){
         var that = this;
         this.distanceService.getDistanceMatrix({
@@ -329,19 +301,16 @@
                 that.geocodeAddress(from, function(latlng){
                     var res = {'from': latlng, 'to': nearestAddress};
                     $j.publish('nearestPointFound', res);
-                });
-                
+                });               
             }else{
             alert('Error was: ' + status);
             }                
         });
-    };
-    
+    };   
     GoogleAPIControler.prototype.getOriginAddress = function(from){
         var address = document.getElementById(from).value;
         return address;
-    };
-    
+    };   
     GoogleAPIControler.prototype.setBounds = function(map, results){
         var bounds = new google.maps.LatLngBounds();
         for(var key in results) {            
