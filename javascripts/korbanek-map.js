@@ -51,7 +51,7 @@
     };
 
     $j.getScript('https://maps.googleapis.com/maps/api/js?key=AIzaSyDdtjd2EThe9VTS2aiCllGq0GzZy28eKKs&', function () {
-        var initAPIrelatedDefaults = {
+        var initAPIrelatedOptions = {
             centralMarkerIcon: {
                 url: 'images/marker-central.png',
                 size: new google.maps.Size(19, 31),
@@ -70,7 +70,7 @@
                 disableDefaultUI: true
             }
         };
-        $j.extend(defaults, initAPIrelatedDefaults)
+        $j.extend(defaults, initAPIrelatedOptions);
         $j(document).ready(function () {
             $j('div[data-' + defaults.mapSettingsDataAttr + ']').each(function () {
                 $j(this).GoogleMapPlugin();
@@ -116,6 +116,7 @@
         this.markerSet = null;
         this.centralMarker = null;
         this.searchResults = null;
+        this.activeInfoWindow = null;
         this.googleAPIcotroler = new GoogleAPIControler();
         this.subscribeEvents();
     }
@@ -152,6 +153,13 @@
         });
         $j.subscribe('nearestPointFound', function (e, results) {
             that.renderSearchResults(results);
+        });
+        $j.subscribe('changeActiveInfoWindow', function (e, infoWindow) {
+            if (that.activeInfoWindow) {
+                that.activeInfoWindow.close();
+                that.activeInfoWindow = null;
+            }
+            that.activeInfoWindow = infoWindow;
         });
     };
     GoogleMap.prototype.detectUserPosition = function (navigatorOptions, retrievePosition, geolocationDenied) {
@@ -194,6 +202,7 @@
     };
     GoogleMap.prototype.setInfoWindowEvent = function (map, marker, event, infoWindow) {
         marker.addListener(event, function () {
+            $j.publish('changeActiveInfoWindow', infoWindow);
             infoWindow.open(map, marker);
         });
     };
@@ -263,6 +272,7 @@
         infoWindow = this.setInfoWindow(this.getInfoWindowContent());
         this.markerSet.push(this.putMarker(this.config.defaultMarkerIcon, results['to'], this.map));
         infoWindow = this.setInfoWindow(this.getInfoWindowContent(this.markerSet[0].getPosition().lat(), this.markerSet[0].getPosition().lng()));
+        infoWindow.open(this.map, this.markerSet[0]);
         this.setInfoWindowEvent(this.map, this.markerSet[0], this.config.openInfoWindowOn, infoWindow);
     };
     function GoogleAPIControler() {
