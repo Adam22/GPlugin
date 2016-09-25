@@ -2,6 +2,7 @@
     //Declare no-conflict
     $j = jQuery.noConflict();
     var o = $j({});
+
     $j.subscribe = function () {
         o.bind.apply(o, arguments);
     };
@@ -11,77 +12,66 @@
     $j.publish = function () {
         o.trigger.apply(o, arguments);
     };
-    var defaults = {
-        //Events
-        startSearchOn: 'click',
-        openInfoWindowOn: 'click',
-        //Selectors
-        defaultContainerID: 'map',
-        markersSourceClass: '.dealer',
-        centralMarkerClass: '.central',
-        addressInputId: 'address',
-        mapSettingsDataAttr: 'map-config',
-        bindSearchFeatureTo: 'submit',
-        //Form css Classes        
-        formControlsCssSet: null, // Css classes for inside <div>
-        labelCssSet: null, // Css classes for form label
-        inputCssSet: null, // Css classes for form input field
-        buttonCssSet: null, // Css classes for form button
-        buttonSpanClassSet: null, // Css classes for button text
-        inputLabel: 'Address', // Input Label
-        inputText: 'text', // Input Placeholder
-        searchButtonText: 'Search', // Button Text
 
-        //Map Default Settings
-        detectUserPosition: true,
-        showAll: false,
-        searchFeature: false,
-        activeInfoWindows: true,
-        mapZoom: 7,
-        //Navigatot Settings
-        navigatorOptions: {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        },
-        mapPosition: {//  map center on start
-            lat: 52.265472,
-            lng: 19.305168
-        }
-    };
+    //Plugin Definition
+    $j.fn.GoogleMapPlugin = function () {
+        var defaults = {
+            //Events
+            startSearchOn: 'click',
+            openInfoWindowOn: 'click',
+            //Selectors
+            markersSourceClass: '.dealer',
+            centralMarkerClass: '.central',
+            addressInputId: 'address',
+            bindSearchFeatureTo: 'submit',
+            //Form css Classes
+            formControlsCssSet: null, // Css classes for inside <div>
+            labelCssSet: null, // Css classes for form label
+            inputCssSet: null, // Css classes for form input field
+            buttonCssSet: null, // Css classes for form button
+            buttonSpanClassSet: null, // Css classes for button text
+            inputLabel: 'Address', // Input Label
+            inputText: 'text', // Input Placeholder
+            searchButtonText: 'Search', // Button Text
 
-    $j.getScript('https://maps.googleapis.com/maps/api/js?key=AIzaSyDdtjd2EThe9VTS2aiCllGq0GzZy28eKKs&', function () {
-        var initAPIrelatedOptions = {
+            //Map Default Settings
+            detectUserPosition: true,
+            showAll: false,
+            searchFeature: false,
+            activeInfoWindows: true,
+            mapZoom: 7,
             centralMarkerIcon: {
+                //url: '/sites/default/files/wysiwyg/images/korbanek-central-legend-small.png',
+                url: 'images/marker-central.png',                
+                size: new google.maps.Size(19, 31), // central marker icon source
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(9, 31)
+            },
+            defaultMarkerIcon: {
+                //url: '/sites/default/files/wysiwyg/images/korbanek-legend-small.png', // default marker icon source
                 url: 'images/marker-central.png',
                 size: new google.maps.Size(19, 31),
                 origin: new google.maps.Point(0, 0),
                 anchor: new google.maps.Point(9, 31)
             },
-            defaultMarkerIcon: {
-                url: 'images/marker-central.png',
-                size: new google.maps.Size(19, 31),
-                origin: new google.maps.Point(0, 0),
-                anchor: new google.maps.Point(9, 31)
+            mapPosition: {//  map center on start
+                lat: 52.265472,
+                lng: 19.305168
             },
             mapOptions: {
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
                 scrollwheel: false,
                 disableDefaultUI: true
+            },
+            //Navigatot Settings
+            navigatorOptions: {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
             }
         };
-        $j.extend(defaults, initAPIrelatedOptions);
-        $j(document).ready(function () {
-            $j('div[data-' + defaults.mapSettingsDataAttr + ']').each(function () {
-                $j(this).GoogleMapPlugin();
-            });
-        });
-    });
-
-    //Plugin Definition
-    $j.fn.GoogleMapPlugin = function () {
         //Retrive Data From Html
-        var options = $j(this).data(defaults.mapSettingsDataAttr);
+        var options = $j(this).data('map-config');
         //Container ID
         options['onContainer'] = $j(this).attr('id');
         //Extend default config
