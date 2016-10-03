@@ -180,13 +180,15 @@
         var destinations = new Array();
         $j(from).each(function () {
             var position = new google.maps.LatLng({lat: $j(this).data('lat'), lng: $j(this).data('lng')});
+            $j(this).attr('data-lat', position.lat());
+            $j(this).attr('data-lng', position.lng());
             destinations.push(position);
         });
         return destinations;
     };
     GoogleMap.prototype.getInfoWindowContent = function (lat, lng) {
         var selector = '[data-lat="' + lat + '"][data-lng="' + lng + '"]';
-        var content;
+        var content = null;
         content = $j(selector).html();
         return content;
     };
